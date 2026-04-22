@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JS Merger (High Performance)</title>
+    <style>
+      :root {
+        --primary: #2563eb;
+        --success: #16a34a;
+        --accent: #7c3aed; /* ショートカットボタン用の色 */
+        --bg: #f8fafc;
+        --text: #334155;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        background-color: var(--bg);
+        color: var(--text);
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+      }
+      textarea {
+        width: 100%;
+        height: 120px;
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-family: monospace;
+        box-sizing: border-box;
+        resize: vertical;
+      }
+
+      .actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      button {
+        padding: 0.6rem 1.2rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      #btn-process {
+        background-color: var(--primary);
+        color: white;
+      }
+      #btn-preset {
+        background-color: var(--accent);
+        color: white;
+      }
+      #btn-copy {
+        background-color: #475569;
+        color: white;
+      }
+      #btn-save {
+        background-color: var(--success);
+        color: white;
+      }
+
+      .status-bar {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: #e2e8f0;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        display: none;
+      }
+      .status-bar.active {
+        display: block;
+      }
+      .error {
+        color: #dc2626;
+        background: #fee2e2;
+      }
+      .success {
+        color: #15803d;
+        background: #dcfce7;
+      }
+
+      #preview-area {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 1rem;
+        border-radius: 4px;
+        overflow-x: auto;
+        max-height: 300px;
+        font-family: monospace;
+        white-space: pre;
+        font-size: 0.85rem;
+      }
+      .meta-info {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>JS File Merger</h1>
+
+    <div class="card">
+      <label for="url-input">JSファイルのURLリスト (1行に1つ)</label>
+      <textarea
+        id="url-input"
+        placeholder="https://example.com/script1.js&#10;https://example.com/script2.js"
+      ></textarea>
+
+      <div class="actions">
+        <button id="btn-process" onclick="processUrls()">
+          ファイルを結合する
+        </button>
+
+        <button id="btn-preset" onclick="runPreset()">
+          ⚡ プリセット実行 (React + Axios)
+        </button>
+      </div>
+
+      <div id="status-msg" class="status-bar"></div>
+    </div>
+
+    <div class="card" id="result-card" style="display: none">
+      <div class="meta-info">
+        ステータス: <span id="file-meta">計算中...</span>
+      </div>
+
+      <div class="actions" style="margin-top: 0; margin-bottom: 1rem">
+        <button id="btn-save" onclick="downloadFile()">
+          💾 保存 (Download)
+        </button>
+        <button id="btn-copy" onclick="copyToClipboard()">
+          📋 コピー (Copy)
+        </button>
+      </div>
+
+      <label>プレビュー (先頭2000文字のみ表示)</label>
+      <div id="preview-area"></div>
+    </div>
+
+    <script>
+      // ▼▼▼▼▼▼ 設定エリア ▼▼▼▼▼▼
+
+      // ここに「よく使うファイルのリスト」を定義してください
+      const PRESET_URLS = [
+        "/src/js/utils.js",
+        "/src/js/archive.js",
+        "/src/js/parser.js",
+        "/src/js/assets.js",
+        "/src/js/character.js",
+        "/src/js/dialog.js",
+        "/src/js/loader.js",
+        "/src/js/application.js",
+      ];
+
+      // ▲▲▲▲▲▲ 設定エリア ▲▲▲▲▲▲
+
+      // グローバル変数
+      let combinedData = null;
+      let combinedBlob = null;
+
+      // 初期表示時にテキストエリアを空にしておく（またはデフォルト値を入れる）
+      document.getElementById("url-input").value = "";
+
+      /**
+       * プリセットを実行する関数
+       */
+      function runPreset() {
+        // テキストエリアにプリセット値をセット
+        const textarea = document.getElementById("url-input");
+        textarea.value = PRESET_URLS.join("\n");
+
+        // 処理を開始
+        processUrls();
+      }
+
+      /**
+       * URLリストを読み込み、結合処理を開始する
+       */
+      async function processUrls() {
+        const input = document.getElementById("url-input").value;
+        const urls = input
+          .split("\n")
+          .map((u) => u.trim())
+          .filter((u) => u.length > 0);
+
+        if (urls.length === 0) {
+          showStatus("URLを入力してください", "error");
+          return;
+        }
+
+        setLoading(true);
+        showStatus(`ファイルをダウンロード中... (0/${urls.length})`, "normal");
+
+        try {
+          const contents = await fetchAllUrls(urls);
+
+          showStatus("データを結合中...", "normal");
+
+          combinedData = contents.join("\n\n/***** NEXT FILE *****/\n\n");
+          combinedBlob = new Blob([combinedData], { type: "text/javascript" });
+
+          renderResult();
+          showStatus("完了しました", "success");
+        } catch (err) {
+          console.error(err);
+          showStatus(`エラーが発生しました: ${err.message}`, "error");
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      async function fetchAllUrls(urls) {
+        let completed = 0;
+        const promises = urls.map(async (url) => {
+          try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const text = await response.text();
+
+            completed++;
+            updateProgress(completed, urls.length);
+
+            return `// SOURCE: ${url}\n${text}`;
+          } catch (e) {
+            throw new Error(`ダウンロード失敗 (${url}): ${e.message}`);
+          }
+        });
+
+        return Promise.all(promises);
+      }
+
+      function renderResult() {
+        const resultCard = document.getElementById("result-card");
+        const previewArea = document.getElementById("preview-area");
+        const fileMeta = document.getElementById("file-meta");
+
+        const sizeMB = (combinedBlob.size / (1024 * 1024)).toFixed(2);
+        fileMeta.textContent = `サイズ: ${sizeMB} MB / 文字数: ${combinedData.length.toLocaleString()}`;
+
+        previewArea.textContent =
+          combinedData.substring(0, 2000) +
+          (combinedData.length > 2000
+            ? "\n\n... (プレビュー用に省略されています) ..."
+            : "");
+
+        resultCard.style.display = "block";
+      }
+
+      function downloadFile() {
+        if (!combinedBlob) return;
+        const url = URL.createObjectURL(combinedBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "bundle.js";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      async function copyToClipboard() {
+        if (!combinedData) return;
+        const btn = document.getElementById("btn-copy");
+        const originalText = btn.textContent;
+
+        try {
+          btn.disabled = true;
+          btn.textContent = "コピー中...";
+          await navigator.clipboard.writeText(combinedData);
+          showStatus("クリップボードにコピーしました！", "success");
+          btn.textContent = "✅ コピー完了";
+          setTimeout(() => (btn.textContent = originalText), 2000);
+        } catch (err) {
+          showStatus(
+            "コピー失敗。ファイルサイズ過大の可能性があります",
+            "error"
+          );
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      function updateProgress(current, total) {
+        const el = document.getElementById("status-msg");
+        if (el.classList.contains("error")) return;
+        el.textContent = `ファイルをダウンロード中... (${current}/${total})`;
+      }
+
+      function showStatus(msg, type) {
+        const el = document.getElementById("status-msg");
+        el.className = "status-bar active";
+        if (type === "error") el.classList.add("error");
+        if (type === "success") el.classList.add("success");
+        el.textContent = msg;
+      }
+
+      function setLoading(isLoading) {
+        const btnProcess = document.getElementById("btn-process");
+        const btnPreset = document.getElementById("btn-preset");
+
+        btnProcess.disabled = isLoading;
+        btnPreset.disabled = isLoading;
+
+        btnProcess.textContent = isLoading ? "処理中..." : "ファイルを結合する";
+      }
+    </script>
+  </body>
+</html>

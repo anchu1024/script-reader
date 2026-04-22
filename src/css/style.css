@@ -1,0 +1,59 @@
+:root {
+  --border-width: 20px;
+  --slice-width: 20;
+}
+
+.editor {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.preview {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+
+.dialog-container {
+  width: 100%;
+  height: auto;
+  min-height: 50%;
+  position: fixed;
+  left: 0px;
+  bottom: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dialog {
+  width: 80%;
+  height: 100px;
+  border-width: 0;
+  border-style: solid;
+  border-image-source: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAB30lEQVR4AeyTQY6DMBAE8f7/z+xunEMQhzm0xgWkpOBEWOOOq9Q/27btPhyDfwF//P1QBBRAkX/nHgTs+7759DN4s399HQS83rgsJaCApbjPYQo4M1n6RgFLcZ/DFHBmsvSNApbiPod9p4AzB+yNAjD0M1gBkwO2KgBDP4MVMDlgqwIw9DNYAZMDtioAQz+DFTA5YKsCMPQzWAGTA7YuFIDd8dLBCoD1KEABMAE43gYoACYAx9sABcAE4HgboACYABxvA5oFVMcroCLUvK+AZsDV8QqoCDXvK6AZcHW8AipCzfsKaAZcHa+AilDzvgKaAVfHK6Ai1LyvgGbA1fHPFFDd+kL7CoBlKEABMAE43gYoACYAx9sABcAE4HgboACYABxvA54jAL7JTeNtACxOAQqACcDxNkABMAE43gYoACYAx9sABcAE4HgbEApIxxWQEgznFRACTMcVkBIM5xUQAkzHFZASDOcVEAJMxxWQEgznFRACTMcVkBIM5xUQAkzH7ykgvfWF5hUAy1CAAmACcLwNUABMAI63AQqACcDxNkABMAE43gbcRwD8Tx8abwNgsQpQAEwAjrcBCoAJwPE2QAEwATj+0IAxxjaGzxi9DD6dHwR8bvh7DQEFFJy7t38BAAD//01Lw/oAAAAGSURBVAMAN6JucKoZFW0AAAAASUVORK5CYII=");
+  border-image-slice: var(--slice-width) fill; /* ここで 9-slice の切り取り位置を指定 */
+  border-image-width: var(--border-width);
+  border-image-repeat: stretch; /* stretch / round / repeat */
+  word-break: break-all;
+  white-space: pre-wrap;
+  font-size: 3em;
+}
+
+.dialog span {
+  display: inline-block;
+}
+
+.character {
+  transform-origin: top left;
+}
