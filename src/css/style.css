@@ -1,27 +1,602 @@
 :root {
-  --border-width: 20px;
-  --slice-width: 20;
+  --bg-dark: #1e293b;
+  --bg-panel: #334155;
+  --text-light: #f8fafc;
+  --accent: #3b82f6;
+  --accent-bg: #10b981; /* 背景変更用 */
+  --accent-music: #a855f7; /* BGM変更用 */
+  --accent-sfx: #f59e0b; /* 効果音用 (新規) */
+  --danger: #ef4444; /* 削除ボタン用 */
+  --border: #475569;
 }
 
 .editor {
   position: absolute;
   top: 0px;
   left: 0px;
+  width: 100vw;
+  height: 100vh;
   margin: 0;
-  padding: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-light);
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Header --- */
+header {
+  background: #0f172a;
+  padding: 0.8rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.btn-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-run {
+  background: #22c55e;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-settings {
+  background: #475569;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-settings:hover {
+  background: #64748b;
+}
+
+/* --- Main Layout --- */
+main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* --- Asset Zone (Left) --- */
+#asset-zone {
+  width: 340px;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.zone-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.2rem;
+  margin-top: 1.5rem;
+}
+.zone-title:first-child {
+  margin-top: 0;
+}
+
+.char-creator {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  border-radius: 6px;
+}
+.input-group {
+  margin-bottom: 0.5rem;
+}
+label {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 0.2rem;
+}
+input[type="text"],
+input[type="file"],
+select {
+  width: 100%;
+  padding: 0.4rem;
+  box-sizing: border-box;
+  background: #1e293b;
+  border: 1px solid var(--border);
+  color: white;
+  border-radius: 4px;
+}
+button.btn-add {
+  width: 100%;
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+button.btn-danger {
+  background: var(--danger);
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.asset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.asset-item {
+  background: #1e293b;
+  border-radius: 4px;
+  padding: 4px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.2s;
+  position: relative;
+  border: 2px solid transparent;
+}
+.asset-item:hover {
+  background: #475569;
+}
+.asset-item img {
+  width: 100%;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+.asset-item .audio-icon {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  background: #334155;
+  border-radius: 2px;
+}
+.asset-item .name {
+  font-size: 0.7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.char-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: var(--accent);
+  font-size: 0.6rem;
+  padding: 1px 3px;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.btn-delete-asset {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: 20px;
+  height: 20px;
+  background-color: var(--danger);
+  color: white;
+  border: 2px solid var(--bg-panel);
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.asset-item:hover .btn-delete-asset {
+  display: flex;
+}
+.btn-delete-asset:hover {
+  transform: scale(1.1);
+}
+
+/* --- Script Zone (Right) --- */
+#script-zone {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  background: #0f172a;
+  position: relative;
+}
+#script-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 80px;
+}
+
+/* Row Styles */
+.script-row {
+  display: flex;
+  background: var(--bg-panel);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  min-height: 100px;
+  align-items: stretch;
+  position: relative;
+}
+
+/* Type Variations */
+.script-row.type-bg {
+  border-color: var(--accent-bg);
+  background: rgba(16, 185, 129, 0.1);
+}
+.script-row.type-bgm {
+  border-color: var(--accent-music);
+  background: rgba(168, 85, 247, 0.1);
+}
+/* 新規: 効果音用スタイル */
+.script-row.type-sfx {
+  border-color: var(--accent-sfx);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+/* Columns */
+.row-left {
+  width: 100px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+.row-left:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.char-face {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  margin-bottom: 0.2rem;
+  background: #000;
+}
+.type-icon {
+  font-size: 2rem;
+  margin-bottom: 5px;
+}
+.icon-bg {
+  color: var(--accent-bg);
+}
+.icon-music {
+  color: var(--accent-music);
+}
+.icon-sfx {
+  color: var(--accent-sfx);
+} /* 新規 */
+
+.row-center {
+  flex: 1;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+textarea.dialogue-input {
   width: 100%;
   height: 100%;
+  background: transparent;
+  border: none;
+  color: white;
+  resize: none;
+  font-size: 1rem;
+  outline: none;
+}
+
+/* Preview Areas */
+.preview-box {
+  width: 100%;
+  height: 80px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px dashed #64748b;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #cbd5e1;
+  overflow: hidden;
+  flex-direction: column;
+  gap: 5px;
+}
+.preview-box:hover {
+  border-color: white;
+  color: white;
+}
+.preview-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.audio-player-ui {
+  width: 100%;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.audio-player-ui audio {
+  width: 100%;
+  height: 30px;
+}
+
+/* Options Column */
+.row-options {
+  width: 220px;
+  border-left: 1px solid var(--border);
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.btn-type-change {
+  background: #64748b;
+  color: white;
+  border: none;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.btn-type-change:hover {
+  background: #94a3b8;
+}
+
+/* ★★★ 行削除ボタン用スタイル ★★★ */
+.btn-delete-row {
+  background: var(--danger);
+  color: white;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: auto; /* オプション列の一番下に配置 */
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.btn-delete-row:hover {
+  opacity: 0.9;
+}
+
+.btn-img-change {
+  background: #475569;
+  color: white;
+  border: 1px solid #64748b;
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.skip-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: #f8fafc;
+  font-weight: bold;
+}
+.skip-toggle input {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+}
+.skip-toggle:hover {
+  color: var(--accent);
+}
+
+/* 新規: 待機トグル用 */
+.wait-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: #f8fafc;
+}
+.wait-toggle input {
+  width: auto;
+  margin: 0;
+}
+.wait-toggle:hover {
+  color: var(--accent-sfx);
+}
+
+#btn-add-row {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: var(--accent);
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- Modals --- */
+#picker-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 300;
+  justify-content: center;
+  align-items: center;
+}
+
+#settings-modal,
+#char-edit-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 200;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: var(--bg-panel);
+  width: 500px;
+  max-height: 80vh;
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+.modal-body {
+  overflow-y: auto;
+  flex: 1;
+}
+.modal-close {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.setting-group {
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border);
+  padding: 1rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+}
+.setting-group h4 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  color: #cbd5e1;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+.setting-item {
+  margin-bottom: 1rem;
+}
+.setting-item:last-child {
+  margin-bottom: 0;
+}
+
+.type-select-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  background: #1e293b;
+  border: 1px solid var(--border);
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+}
+.type-select-btn:hover {
+  background: #334155;
+  border-color: var(--accent);
+}
+.type-select-btn strong {
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 0.2rem;
 }
 
 .preview {
   position: absolute;
   top: 0px;
   left: 0px;
-  margin: 0;
-  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  display: none;
+  overflow: hidden;
+}
+
+.background {
+  position: absolute;
+  top: 0px;
+  left: 0px;
   width: 100%;
   height: 100%;
-  display: none;
+  object-fit: cover;
+  object-position: center;
 }
 
 .dialog-container {
@@ -39,13 +614,13 @@
 
 .dialog {
   width: 80%;
-  height: 100px;
+  height: 150px;
   border-width: 0;
   border-style: solid;
-  border-image-source: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAB30lEQVR4AeyTQY6DMBAE8f7/z+xunEMQhzm0xgWkpOBEWOOOq9Q/27btPhyDfwF//P1QBBRAkX/nHgTs+7759DN4s399HQS83rgsJaCApbjPYQo4M1n6RgFLcZ/DFHBmsvSNApbiPod9p4AzB+yNAjD0M1gBkwO2KgBDP4MVMDlgqwIw9DNYAZMDtioAQz+DFTA5YKsCMPQzWAGTA7YuFIDd8dLBCoD1KEABMAE43gYoACYAx9sABcAE4HgboACYABxvA5oFVMcroCLUvK+AZsDV8QqoCDXvK6AZcHW8AipCzfsKaAZcHa+AilDzvgKaAVfHK6Ai1LyvgGbA1fHPFFDd+kL7CoBlKEABMAE43gYoACYAx9sABcAE4HgboACYABxvA54jAL7JTeNtACxOAQqACcDxNkABMAE43gYoACYAx9sABcAE4HgbEApIxxWQEgznFRACTMcVkBIM5xUQAkzHFZASDOcVEAJMxxWQEgznFRACTMcVkBIM5xUQAkzH7ykgvfWF5hUAy1CAAmACcLwNUABMAI63AQqACcDxNkABMAE43gbcRwD8Tx8abwNgsQpQAEwAjrcBCoAJwPE2QAEwATj+0IAxxjaGzxi9DD6dHwR8bvh7DQEFFJy7t38BAAD//01Lw/oAAAAGSURBVAMAN6JucKoZFW0AAAAASUVORK5CYII=");
-  border-image-slice: var(--slice-width) fill; /* ここで 9-slice の切り取り位置を指定 */
+  border-image-source: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAB30lEQVR4AeyTQY6DMBAE8f7/z+xunEMQhzm0xgWkpOBEWOOOq9Q/27btPhyDfwF//P1QBBRAkX/nHgTs+7759DN4s399HQS83rgsJaCApbjPYQo4M1n6RgFLcZ/DFHBmsvSNApbiPod9p4AzB+yNAjD0M1gBkwO2KgBDP4MVMDlgqwIw9DNYAZMDtioAQz+DFTA5YKsCMPQzWAGTA7YuFIDd8dLBCoD1KEABMAE43gYoACYAx9sABcAE4HgboACYABxvA5oFVMcroCLUvK+AZsDV8QqoCDXvK6AZcHW8AipCzfsKaAZcHa+AilDzvgKaAVfHK6Ai1LyvgGbA1fHK6Ai1LyvgGbA1fHPFFDd+kL7CoBlKEABMAE43gYoACYAx9sABcAE4HgboACYABxvA54jAL7JTeNtACxOAQqACcDxNkABMAE43gYoACYAx9sABcAE4HgbEApIxxWQEgznFRACTMcVkBIM5xUQAkzHFZASDOcVEAJMxxWQEgznFRACTMcVkBIM5xUQAkzH7ykgvfWF5hUAy1CAAmACcLwNUABMAI63AQqACcDxNkABMAE43gbcRwD8Tx8abwNgsQpQAEwAjrcBCoAJwPE2QAEwATj+0IAxxjaGzxi9DD6dHwR8bvh7DQEFFJy7t38BAAD//01Lw/oAAAAGSURBVAMAN6JucKoZFW0AAAAASUVORK5CYII=");
+  border-image-slice: var(--slice-width) fill;
   border-image-width: var(--border-width);
-  border-image-repeat: stretch; /* stretch / round / repeat */
+  border-image-repeat: stretch;
   word-break: break-all;
   white-space: pre-wrap;
   font-size: 3em;
@@ -55,6 +630,10 @@
   display: inline-block;
 }
 
-.character {
-  transform-origin: top left;
+.char-edit-preview-row {
+  display: flex;
+  gap: 1rem;
+}
+.char-edit-preview-row > div {
+  flex: 1;
 }

@@ -19,6 +19,7 @@ class Application {
     this.dialog.changeTheme(settings.dialogTheme);
     this.forceScene("preview");
     this.BG.src = this.nowBG;
+    console.log(scripts);
   }
 
   /**

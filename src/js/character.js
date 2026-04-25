@@ -73,10 +73,11 @@ class Player extends Character {
   }
 
   /**
-   * 向きを左、右に設定します。
-   * @param {string|number|boolean} [dir] `right`、`left`で指定、または`1`、`-1`(1が右)で指定、または`true`、`false`(trueで右)で指定できます。
+   * プレイヤーの初期位置を決めます。
+   * @param {number} [idx] allocate()で取得したインデックス
+   * @param {number} [n] 最大人数
    */
-  setPos(dir) {
+  setPos(idx, n) {
     rightFlag = false;
     if (typeof dir === "string") {
       if (dir === "right") {
